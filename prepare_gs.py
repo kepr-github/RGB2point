@@ -101,13 +101,10 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
         return torch.from_numpy(c2w).to(pos.device)
 
     # Intrinsic matrix used for all renders
-    intrinsics = (
-        torch.tensor(
-            [[800.0, 0.0, width / 2], [0.0, 800.0, height / 2], [0.0, 0.0, 1.0]],
-            device=device,
-        )
-        .unsqueeze(0)
-    )
+    intrinsics = torch.tensor(
+        [[800.0, 0.0, width / 2], [0.0, 800.0, height / 2], [0.0, 0.0, 1.0]],
+        device=device,
+    ).unsqueeze(0)
 
     for i in range(num_views):
         theta = np.arccos(2 * random.random() - 1)
@@ -129,11 +126,10 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
             intrinsics,
             width,
             height,
-            render_mode="RGB"   
+            render_mode="RGB",
         )
         print(rgb.shape)
         img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
-        print(img.shape)
         Image.fromarray(img).save(os.path.join(out_dir, f"{i:02}.png"))
 
 
@@ -143,8 +139,12 @@ def process_ply(ply_path, pc_dir, render_dir):
     points = data[:, :3]
     normalized = normalize_points(points)
 
-    np.save(os.path.join(pc_dir, "pointcloud_1024.npy"), sample_points(normalized, 1024))
-    np.save(os.path.join(pc_dir, "pointcloud_2048.npy"), sample_points(normalized, 2048))
+    np.save(
+        os.path.join(pc_dir, "pointcloud_1024.npy"), sample_points(normalized, 1024)
+    )
+    np.save(
+        os.path.join(pc_dir, "pointcloud_2048.npy"), sample_points(normalized, 2048)
+    )
 
     render_views(data, render_dir)
 
@@ -161,7 +161,9 @@ def main():
 
     for category, ply_path in iter_ply_files(args.input_path):
         model_name = os.path.splitext(os.path.basename(ply_path))[0]
-        pc_dir = os.path.join(args.output_dir, "ShapeNet_pointclouds", category, model_name)
+        pc_dir = os.path.join(
+            args.output_dir, "ShapeNet_pointclouds", category, model_name
+        )
         render_dir = os.path.join(
             args.output_dir,
             "ShapeNetRendering",
@@ -176,4 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
