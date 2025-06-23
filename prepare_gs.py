@@ -11,7 +11,25 @@ import random
 from typing import Iterable
 
 import numpy as np
-import open3d as o3d
+import torch
+from PIL import Image
+from gsplat import GaussianRenderer
+
+
+def load_scaniverse_ply(path: str) -> np.ndarray:
+    """Load Scaniverse-style PLY file and return the raw vertex data."""
+    with open(path, "rb") as f:
+        num_vertices = None
+        while True:
+            line = f.readline().decode("ascii")
+            if line.startswith("element vertex"):
+                num_vertices = int(line.split()[2])
+            if line.startswith("end_header"):
+                break
+        if num_vertices is None:
+            raise ValueError("Invalid PLY: vertex count missing")
+        data = np.fromfile(f, dtype="<f4").reshape(num_vertices, -1)
+    return data
 
 
 def normalize_points(points):
@@ -53,46 +71,63 @@ def iter_ply_files(path: str) -> Iterable[tuple[str, str]]:
                 yield category, os.path.join(cat_path, fname)
 
 
-def render_views(pcd, out_dir, num_views=24, width=224, height=224):
-    """Render ``num_views`` random viewpoints of ``pcd`` to ``out_dir``."""
-    import open3d.visualization.rendering as rendering
+def render_views(data, out_dir, num_views=24, width=224, height=224):
+    """Render ``num_views`` random viewpoints of Gaussian data to ``out_dir``."""
 
     os.makedirs(out_dir, exist_ok=True)
-    material = rendering.MaterialRecord()
-    material.shader = "defaultUnlit"
 
-    center = pcd.get_center()
-    radius = np.max(np.linalg.norm(np.asarray(pcd.points) - center, axis=1))
+    pos = torch.from_numpy(data[:, :3]).float().cuda()
+    sh = torch.from_numpy(data[:, 6 : 6 + 3 + 43]).float().cuda()
+    opacity = torch.from_numpy(data[:, 6 + 43 + 1]).float().cuda()
+    scale = torch.from_numpy(data[:, 6 + 43 + 2 : 6 + 43 + 5]).float().cuda()
+    rot = torch.from_numpy(data[:, 6 + 43 + 5 : 6 + 43 + 9]).float().cuda()
 
-    renderer = rendering.OffscreenRenderer(width, height)
-    renderer.scene.add_geometry("pcd", pcd, material)
+    center = pos.mean(dim=0).cpu().numpy()
+    radius = torch.norm(pos - pos.mean(dim=0), dim=1).max().item()
+
+    renderer = GaussianRenderer(img_w=width, img_h=height, device="cuda")
+    renderer.set_gaussians(pos=pos, scale=scale, rot=rot, opacity=opacity, sh=sh)
+
+    def look_at(eye: np.ndarray, target: np.ndarray) -> torch.Tensor:
+        forward = target - eye
+        forward = forward / np.linalg.norm(forward)
+        up = np.array([0.0, 0.0, 1.0], dtype=np.float32)
+        right = np.cross(forward, up)
+        right = right / np.linalg.norm(right)
+        up = np.cross(right, forward)
+        rot = np.stack([right, up, forward], axis=1)
+        c2w = np.eye(4, dtype=np.float32)
+        c2w[:3, :3] = rot
+        c2w[:3, 3] = eye
+        return torch.from_numpy(c2w).to(pos.device)
+
+    intrinsics = torch.tensor(
+        [[800.0, 0.0, width / 2], [0.0, 800.0, height / 2], [0.0, 0.0, 1.0]],
+        device=pos.device,
+    ).unsqueeze(0)
 
     for i in range(num_views):
         theta = np.arccos(2 * random.random() - 1)
         phi = 2 * np.pi * random.random()
-        eye = center + radius * 2.5 * np.array([
-            np.sin(theta) * np.cos(phi),
-            np.sin(theta) * np.sin(phi),
-            np.cos(theta),
-        ])
-        renderer.scene.camera.look_at(center, eye, [0, 0, 1])
-        img = renderer.render_to_image()
-        o3d.io.write_image(os.path.join(out_dir, f"{i:02}.png"), img)
-
-    renderer.release()
+        eye = center + radius * 2.5 * np.array(
+            [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
+        )
+        c2w = look_at(eye.astype(np.float32), center.astype(np.float32)).unsqueeze(0)
+        img = renderer.render(c2w, intrinsics)[0]
+        img = (img.clamp(0, 1) * 255).byte().cpu().numpy()
+        Image.fromarray(img).save(os.path.join(out_dir, f"{i:02}.png"))
 
 
 def process_ply(ply_path, pc_dir, render_dir):
     """Create point clouds and renderings for a single ``.ply`` file."""
-    pcd = o3d.io.read_point_cloud(ply_path)
-    points = np.asarray(pcd.points)
-    points = normalize_points(points)
+    data = load_scaniverse_ply(ply_path)
+    points = data[:, :3]
+    normalized = normalize_points(points)
 
-    np.save(os.path.join(pc_dir, "pointcloud_1024.npy"), sample_points(points, 1024))
-    np.save(os.path.join(pc_dir, "pointcloud_2048.npy"), sample_points(points, 2048))
+    np.save(os.path.join(pc_dir, "pointcloud_1024.npy"), sample_points(normalized, 1024))
+    np.save(os.path.join(pc_dir, "pointcloud_2048.npy"), sample_points(normalized, 2048))
 
-    pcd.points = o3d.utility.Vector3dVector(points)
-    render_views(pcd, render_dir)
+    render_views(data, render_dir)
 
 
 def main():

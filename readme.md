@@ -12,8 +12,8 @@ Assuming `Pytorch 2.0+` with `CUDA` is installed, run:
 pip install timm
 pip install accelerate
 pip install wandb
-pip install open3d
 pip install scikit-learn
+pip install gsplat
 ```
 
 ## Docker
@@ -65,9 +65,26 @@ python prepare_gs.py ./gs data
 This generates `ShapeNet_pointclouds` and `ShapeNetRendering` folders
 inside `data/`. For each model, two point clouds (`pointcloud_1024.npy`
 and `pointcloud_2048.npy`) are created together with 24 randomly
-rendered views saved under a `rendering` directory. You can also pass a
+rendered views using `gsplat` saved under a `rendering` directory. You can also pass a
 single `.ply` file instead of a directory; the parent folder name will
 be used as its category.
+
+## Rendering gs data
+If you want to quickly visualize a Scaniverse-style Gaussian `.ply` file you can
+use the `gsplat` renderer. First install the dependency:
+
+```
+pip install gsplat
+```
+
+Render the file with:
+
+```
+python render_gs.py your_scaniverse.ply output.png
+```
+
+This will generate an image of the Gaussian model using the default camera
+parameters.
 
 
 ## update

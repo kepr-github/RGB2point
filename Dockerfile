@@ -10,6 +10,6 @@ WORKDIR /app
 # source will be mounted at runtime via docker-compose
 
 # install python dependencies
-RUN pip install --no-cache-dir timm accelerate wandb open3d scikit-learn
+RUN pip install --no-cache-dir timm accelerate wandb scikit-learn gsplat
 
 CMD ["bash"]
