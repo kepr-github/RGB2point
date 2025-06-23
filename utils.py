@@ -12,9 +12,9 @@ class PCDataset(Dataset):
         self.stage = stage
 
         if stage == "train":
-            image_paths = f"split/shapenet_train.txt"
+            image_paths = f"data/shapenet_train.txt"
         elif stage == "test":
-            image_paths = f"split/shapenet_test.txt"
+            image_paths = f"data/shapenet_test.txt"
 
         with open(image_paths) as caption_file:
             self.filenames = caption_file.readlines()
@@ -34,9 +34,22 @@ class PCDataset(Dataset):
 
         for c in ["02958343", "02691156", "03001627"]:
             for label in labels:
-                volume_path = f"C:\\Users\\appro\\Documents\\ShapeNet\\ShapeNet_pointclouds\\{c}\\{label}\\pointcloud_1024.npy"
+                volume_path = os.path.join(
+                    "data",
+                    "ShapeNet_pointclouds",
+                    c,
+                    label,
+                    "pointcloud_1024.npy",
+                )
                 files = glob(
-                    f"C:\\Users\\appro\\Documents\\ShapeNet\\ShapeNetRendering\\{c}\\{label}\\rendering\\*.png"
+                    os.path.join(
+                        "data",
+                        "ShapeNetRendering",
+                        c,
+                        label,
+                        "rendering",
+                        "*.png",
+                    )
                 )
                 for file in files:
                     if self.stage == "train":
@@ -45,7 +58,14 @@ class PCDataset(Dataset):
 
                 if self.stage == "test":
                     if os.path.exists(volume_path) and len(files) > 1:
-                        test_image_path = f"C:\\Users\\appro\\Documents\\ShapeNet\\ShapeNetRendering\\{c}\\{label}\\rendering\\00.png"
+                        test_image_path = os.path.join(
+                            "data",
+                            "ShapeNetRendering",
+                            c,
+                            label,
+                            "rendering",
+                            "00.png",
+                        )
                         self.data.append([c, label, test_image_path])
 
     def __len__(self):
@@ -72,7 +92,13 @@ class PCDataset(Dataset):
 
         image_files = [image]
         pc = np.load(
-            f"C:\\Users\\appro\\Documents\\ShapeNet\\ShapeNet_pointclouds\\{category}\\{label}\\pointcloud_1024.npy"
+            os.path.join(
+                "data",
+                "ShapeNet_pointclouds",
+                category,
+                label,
+                "pointcloud_1024.npy",
+            )
         )
         pc = self.normalize_point_cloud(pc)
 
