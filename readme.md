@@ -16,6 +16,23 @@ pip install open3d
 pip install scikit-learn
 ```
 
+## Docker
+You can also run **RGB2Point** in a Docker container. Build the image from the
+repository root:
+
+```
+docker build -t rgb2point .
+```
+
+Then start an interactive session:
+
+```
+docker run --gpus all -it rgb2point
+```
+
+This container includes all Python dependencies required to train and infer
+models.
+
 ## Training
 ```
 python train.py
