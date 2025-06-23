@@ -81,6 +81,7 @@ if __name__ == "__main__":
         "04379243": "table",
         "04401088": "telephone",
         "04530566": "watercraft",
+        "soybean":"soybean"
     }
 
 

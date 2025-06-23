@@ -49,7 +49,7 @@ If your data resides elsewhere or you want to train on a different set of
 categories, provide the dataset root and a list of category names:
 
 ```bash
-python train.py --root /path/to/data --categories 02958343 02691156 03001627
+python train.py --root ./data --categories soybean
 ```
 
 ## Training Data
