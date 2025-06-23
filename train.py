@@ -64,6 +64,7 @@ if __name__ == "__main__":
     alpha = 5.0
 
     num_epochs = 1000
+    save_interval = 10
 
     accelerator.init_trackers(project_name="wacv_pc1024", config={})
 
@@ -225,9 +226,10 @@ if __name__ == "__main__":
         )
         sche.step(score)
         print(score)
-        if score < best:
-            best = score
-            print("model updated")
+        if (epoch + 1) % save_interval == 0:
+            if score < best:
+                best = score
+                print("model updated")
             if isinstance(model, nn.DataParallel):
                 data = {
                     "model": model.module.state_dict(),

@@ -74,6 +74,7 @@ if __name__ == "__main__":
     alpha = 5.0
 
     num_epochs = 1000
+    save_interval = 10
 
     accelerator.init_trackers(project_name="wacv_pc1024_finetune", config={})
 
@@ -234,8 +235,9 @@ if __name__ == "__main__":
             save_dir, f"model_epoch{epoch + 1}_score{score:.4f}.pth"
         )
         sche.step(score)
-        if score < best:
-            best = score
+        if (epoch + 1) % save_interval == 0:
+            if score < best:
+                best = score
             if isinstance(model, nn.DataParallel):
                 data = {
                     "model": model.module.state_dict(),
