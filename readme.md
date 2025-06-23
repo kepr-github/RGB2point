@@ -46,16 +46,25 @@ python train.py
 ```
 
 If your data resides elsewhere or you want to train on a different set of
-categories, provide the dataset root and a list of category names:
+categories, provide the dataset root and a list of category names. For example,
+to train on a custom category named `soybean` placed under
+`data/ShapeNetRendering/soybean` and `data/ShapeNet_pointclouds/soybean` run:
 
 ```bash
-python train.py --root /path/to/data --categories 02958343 02691156 03001627
+python train.py --root /path/to/data --categories soybean
 ```
+To use multiple categories list them all after `--categories`.
 
 ## Training Data
 Please download 1)  [Point cloud data zip file](https://drive.google.com/file/d/1R7TXnBvVir8OCXPE5f2kck6Enl0gdMUQ/view?usp=sharing), 2) [Rendered Images](https://drive.google.com/file/d/1t_rlV1BwitvICap_2ubd5oqL_6Yq-Drn/view?usp=sharing), and 3) [Train/test filenames](https://drive.google.com/drive/folders/1jBPd1YBJwzgVpolT-yA0g8XxYJmb2_s-?usp=sharing).
 
-Next, modify the downloaded 1), 2), 3) file paths to [L#36](https://github.com/JaeLee18/RGB2point/blob/7b29188ea8b4c92fcc5f48bd0066e901881ce1f7/utils.py#L36), [L#38](https://github.com/JaeLee18/RGB2point/blob/7b29188ea8b4c92fcc5f48bd0066e901881ce1f7/utils.py#L38), [L#14](https://github.com/JaeLee18/RGB2point/blob/7b29188ea8b4c92fcc5f48bd0066e901881ce1f7/utils.py#L14) and [L#16](https://github.com/JaeLee18/RGB2point/blob/7b29188ea8b4c92fcc5f48bd0066e901881ce1f7/utils.py#L16).
+Place the extracted folders `ShapeNet_pointclouds` and `ShapeNetRendering` under
+the directory specified by `--root` (``data/`` by default). The optional files
+`shapenet_train.txt` and `shapenet_test.txt` should also be located in this
+root directory. Each line of these files lists a model using the format
+``<category>/<model_name>``. When present, the loader will only use the models
+listed in the corresponding file for the train or test split. If the files are
+omitted, all available models are used.
 
 ## Pretrained Model
 Download the model trained on Chair, Airplane and Car from ShapeNet.
