@@ -13,7 +13,7 @@ from typing import Iterable
 import numpy as np
 import torch
 from PIL import Image
-from gsplat import GaussianRenderer
+from gsplat import rasterization
 
 
 def load_scaniverse_ply(path: str) -> np.ndarray:
@@ -85,8 +85,7 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
     center = pos.mean(dim=0).cpu().numpy()
     radius = torch.norm(pos - pos.mean(dim=0), dim=1).max().item()
 
-    renderer = GaussianRenderer(img_w=width, img_h=height, device="cuda")
-    renderer.set_gaussians(pos=pos, scale=scale, rot=rot, opacity=opacity, sh=sh)
+    device = pos.device
 
     def look_at(eye: np.ndarray, target: np.ndarray) -> torch.Tensor:
         forward = target - eye
@@ -101,9 +100,10 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
         c2w[:3, 3] = eye
         return torch.from_numpy(c2w).to(pos.device)
 
+    # Intrinsic matrix used for all renders
     intrinsics = torch.tensor(
         [[800.0, 0.0, width / 2], [0.0, 800.0, height / 2], [0.0, 0.0, 1.0]],
-        device=pos.device,
+        device=device,
     ).unsqueeze(0)
 
     for i in range(num_views):
@@ -113,8 +113,18 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
             [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
         )
         c2w = look_at(eye.astype(np.float32), center.astype(np.float32)).unsqueeze(0)
-        img = renderer.render(c2w, intrinsics)[0]
-        img = (img.clamp(0, 1) * 255).byte().cpu().numpy()
+        rgb, _, _ = rasterization(
+            pos.unsqueeze(0),
+            rot.unsqueeze(0),
+            scale.unsqueeze(0),
+            opacity.unsqueeze(0),
+            sh.unsqueeze(0),
+            c2w,
+            intrinsics,
+            width,
+            height,
+        )
+        img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
         Image.fromarray(img).save(os.path.join(out_dir, f"{i:02}.png"))
 
 
