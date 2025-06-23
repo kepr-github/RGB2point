@@ -13,6 +13,7 @@ pip install timm
 pip install accelerate
 pip install wandb
 pip install scikit-learn
+pip install pyyaml
 pip install gsplat
 ```
 If `gsplat` needs to be compiled from source, make sure the GLM headers
@@ -37,16 +38,18 @@ This container includes all Python dependencies required to train and infer
 models.
 
 ## Training
-By default the training script expects the dataset to be located under
-`data/` with the two folders `ShapeNet_pointclouds` and
-`ShapeNetRendering` inside. Launch training with:
+The training script reads its settings from `config.yaml`. By default the
+dataset is expected under `data/` with the two folders
+`ShapeNet_pointclouds` and `ShapeNetRendering` inside. Launch training
+with:
 
 ```bash
 python train.py
 ```
 
 If your data resides elsewhere or you want to train on a different set of
-categories, provide the dataset root and a list of category names:
+categories, edit `config.yaml` accordingly or override the values on the
+command line:
 
 ```bash
 python train.py --root ./data --categories soybean
@@ -67,7 +70,8 @@ https://drive.google.com/file/d/1Z5luy_833YV6NGiKjGhfsfEUyaQkgua1/view?usp=shari
 ```
 python inference.py
 ```
-Change `image_path` and `save_path` in `inference.py` accrodingly.
+Settings for the model checkpoint and input/output paths are read from
+`config.yaml`. You can override them on the command line if needed.
 
 
 ## Preparing gs data
