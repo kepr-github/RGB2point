@@ -9,6 +9,7 @@ from PIL import Image
 import numpy as np
 from glob import glob
 from accelerate import Accelerator
+import argparse
 
 from chamferdist import ChamferDistance
 from tqdm import tqdm
@@ -19,6 +20,16 @@ from model import PointCloudNet
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train RGB2Point")
+    parser.add_argument("--root", default="data", help="Dataset root directory")
+    parser.add_argument(
+        "--categories",
+        nargs="+",
+        default=["02958343", "02691156", "03001627"],
+        help="List of category names to use",
+    )
+    args = parser.parse_args()
+
     accelerator = Accelerator(log_with="wandb")
     # Avoid shared memory exhaustion when using DataLoader workers
     mp.set_sharing_strategy("file_system")
@@ -73,11 +84,11 @@ if __name__ == "__main__":
     }
 
 
-    dataset = PCDataset(stage="train", transform=transform)
+    dataset = PCDataset(stage="train", transform=transform, root=args.root, categories=args.categories)
     dataloader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=8
     )
-    test_dataset = PCDataset(stage="test", transform=transform)
+    test_dataset = PCDataset(stage="test", transform=transform, root=args.root, categories=args.categories)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     model, optimizer, dataloader, test_dataloader, sche = accelerator.prepare(
         model, optimizer, dataloader, test_dataloader, sche

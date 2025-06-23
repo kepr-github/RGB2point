@@ -7,17 +7,51 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
 class PCDataset(Dataset):
-    def __init__(self, stage, transform=None):
+    def __init__(self, stage, transform=None, root="data", categories=None):
+        """Dataset loader for point clouds and renderings.
+
+        Parameters
+        ----------
+        stage: str
+            Either ``"train"`` or ``"test"``.
+        transform: torchvision transform or ``None``
+            Applied to the loaded images.
+        root: str, optional
+            Root directory containing ``ShapeNet_pointclouds`` and
+            ``ShapeNetRendering`` folders.
+        categories: list of str, optional
+            Category names to load. When ``None`` the default ShapeNet
+            categories used by the original code are selected.
+        """
+
         self.transform = transform
         self.stage = stage
+        self.root = root
 
+        default_categories = ["02958343", "02691156", "03001627"]
+        self.categories = categories if categories is not None else default_categories
+
+        # Optional train/test split text files. If they don't exist, build the
+        # file list by scanning the dataset directories.
         if stage == "train":
-            image_paths = f"data/shapenet_train.txt"
+            split_file = os.path.join(root, "shapenet_train.txt")
         elif stage == "test":
-            image_paths = f"data/shapenet_test.txt"
+            split_file = os.path.join(root, "shapenet_test.txt")
+        else:
+            split_file = None
 
-        with open(image_paths) as caption_file:
-            self.filenames = caption_file.readlines()
+        self.filenames = []
+        if split_file and os.path.exists(split_file):
+            with open(split_file) as f:
+                self.filenames = [line.strip() for line in f if line.strip()]
+        else:
+            # Auto-discover available models
+            for c in self.categories:
+                cat_dir = os.path.join(root, "ShapeNet_pointclouds", c)
+                if not os.path.isdir(cat_dir):
+                    continue
+                for label in os.listdir(cat_dir):
+                    self.filenames.append(f"{c}/{label}")
 
         self.numbers_list = [f"{i:02}" for i in range(24)]
 
@@ -32,10 +66,10 @@ class PCDataset(Dataset):
         self.labels = []
         self.data = []
 
-        for c in ["02958343", "02691156", "03001627"]:
+        for c in self.categories:
             for label in labels:
                 volume_path = os.path.join(
-                    "data",
+                    self.root,
                     "ShapeNet_pointclouds",
                     c,
                     label,
@@ -43,7 +77,7 @@ class PCDataset(Dataset):
                 )
                 files = glob(
                     os.path.join(
-                        "data",
+                        self.root,
                         "ShapeNetRendering",
                         c,
                         label,
@@ -59,7 +93,7 @@ class PCDataset(Dataset):
                 if self.stage == "test":
                     if os.path.exists(volume_path) and len(files) > 1:
                         test_image_path = os.path.join(
-                            "data",
+                            self.root,
                             "ShapeNetRendering",
                             c,
                             label,
@@ -93,7 +127,7 @@ class PCDataset(Dataset):
         image_files = [image]
         pc = np.load(
             os.path.join(
-                "data",
+                self.root,
                 "ShapeNet_pointclouds",
                 category,
                 label,
