@@ -67,6 +67,12 @@ if __name__ == "__main__":
 
     accelerator.init_trackers(project_name="wacv_pc1024", config={})
 
+    # create timestamped directory for checkpoints
+    jst = timezone(timedelta(hours=9))
+    timestamp = datetime.now(jst).strftime("%Y%m%d_%H%M%S")
+    save_dir = os.path.join("ckpt", timestamp)
+    os.makedirs(save_dir, exist_ok=True)
+
     chamferDist = ChamferDistance()
     label_table = {
         "02691156": "airplane",
@@ -212,11 +218,11 @@ if __name__ == "__main__":
         accelerator.log(
             {"test/loss": np.mean(loss_history), "cd": cdtable, "test/epoch": epoch + 1}
         )
-        os.makedirs("/ckpt", exist_ok=True)
-        jst = timezone(timedelta(hours=9))
-        timestamp = datetime.now(jst).strftime("%Y%m%d_%H%M%S")
-        model_save_name = f"./ckpt/mymodel_{timestamp}.pth"
+
         score = np.mean(total_cd)
+        model_save_name = os.path.join(
+            save_dir, f"model_epoch{epoch + 1}_score{score:.4f}.pth"
+        )
         sche.step(score)
         print(score)
         if score < best:
