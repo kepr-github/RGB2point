@@ -144,7 +144,8 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
 
     for i in range(num_views):
         # Sample camera position on a sphere
-        theta = np.arccos(2 * random.random() - 1)
+        # Sample theta only for the upper hemisphere so cameras never look from below
+        theta = np.arccos(random.random())
         phi = 2 * np.pi * random.random()
         camera_dist = view_radius * 2.5 # Distance from the center
         eye = view_center + camera_dist * np.array(
@@ -186,6 +187,7 @@ def process_ply(ply_path, pc_dir, render_dir):
     try:
         data = load_scaniverse_ply(ply_path)
         points = data[:, :3]
+        points[:, 1] *= -1  # Flip Y axis for point cloud generation
         normalized_points = normalize_points(points)
 
         os.makedirs(pc_dir, exist_ok=True)
