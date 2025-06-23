@@ -17,17 +17,14 @@ pip install scikit-learn
 ```
 
 ## Docker
-You can also run **RGB2Point** in a Docker container. Build the image from the
-repository root:
+You can also run **RGB2Point** using Docker Compose. The provided compose file
+mounts the repository into the container so that changes on the host are
+immediately available.
+
+Build the image and start an interactive session:
 
 ```
-docker build -t rgb2point .
-```
-
-Then start an interactive session:
-
-```
-docker run --gpus all -it rgb2point
+docker compose run --build --rm app
 ```
 
 This container includes all Python dependencies required to train and infer
