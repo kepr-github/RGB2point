@@ -92,6 +92,17 @@ python render_gs.py your_scaniverse.ply output.png
 This will generate an image of the Gaussian model using the default camera
 parameters.
 
+## Converting npy point clouds to PLY
+Point clouds produced by `prepare_gs.py` are stored as NumPy arrays. To view
+them in CloudCompare or other point cloud viewers, convert the file to PLY:
+
+```
+python convert_npy_to_ply.py data/ShapeNet_pointclouds/gs/エンレイ2/pointcloud_2048.npy output.ply
+```
+
+Replace the paths with your own `.npy` file and desired output location.
+
+
 
 ## update
 We have added support for the BlendedMVS Dataset with a custom DataLoader located in the notebooks folder. This integration enhances multi-view stereo capability for 3D reconstruction.
