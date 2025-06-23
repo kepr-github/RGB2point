@@ -104,7 +104,7 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
     intrinsics = torch.tensor(
         [[800.0, 0.0, width / 2], [0.0, 800.0, height / 2], [0.0, 0.0, 1.0]],
         device=device,
-    ).unsqueeze(0)
+    )
 
     for i in range(num_views):
         theta = np.arccos(2 * random.random() - 1)
@@ -112,13 +112,13 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
         eye = center + radius * 2.5 * np.array(
             [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
         )
-        c2w = look_at(eye.astype(np.float32), center.astype(np.float32)).unsqueeze(0)
+        c2w = look_at(eye.astype(np.float32), center.astype(np.float32))
         rgb, _, _ = rasterization(
-            pos.unsqueeze(0),
-            rot.unsqueeze(0),
-            scale.unsqueeze(0),
-            opacity.unsqueeze(0),
-            sh.unsqueeze(0),
+            pos,
+            rot,
+            scale,
+            opacity,
+            sh,
             c2w,
             intrinsics,
             width,
