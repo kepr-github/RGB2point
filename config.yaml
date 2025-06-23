@@ -3,7 +3,7 @@
 # Dataset settings
 dataset:
   root: data
-  categories: ["02958343", "02691156", "03001627"]
+  categories: ["soybean"]
 
 # Model hyperparameters
 model:
@@ -29,6 +29,6 @@ finetune:
 
 # Inference
 inference:
-  model_path: ckpt/mymodel.pth
+  model_path: ckpt/20250623_232126/model_epoch25_score0.0838.pth
   image_path: img/09.png
-  save_path: result/09_1.ply
+  save_path: result/09_2.ply
