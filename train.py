@@ -2,7 +2,8 @@
 import torch
 import torch.nn as nn
 from torchvision import transforms
-from torch.utils.data import  DataLoader
+from torch.utils.data import DataLoader
+import torch.multiprocessing as mp
 import torch.optim as optim
 from PIL import Image
 import numpy as np
@@ -19,6 +20,8 @@ from model import PointCloudNet
 
 if __name__ == "__main__":
     accelerator = Accelerator(log_with="wandb")
+    # Avoid shared memory exhaustion when using DataLoader workers
+    mp.set_sharing_strategy("file_system")
     transform = transforms.Compose(
         [
             transforms.Resize((224, 224)),
@@ -72,7 +75,11 @@ if __name__ == "__main__":
 
     dataset = PCDataset(stage="train", transform=transform)
     dataloader = DataLoader(
-        dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=12
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=12,
     )
     test_dataset = PCDataset(stage="test", transform=transform)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
