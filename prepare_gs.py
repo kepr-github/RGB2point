@@ -117,11 +117,11 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
         )
         c2w = look_at(eye.astype(np.float32), center.astype(np.float32)).unsqueeze(0)
         rgb, _, _ = rasterization(
-            pos.unsqueeze(0),
-            rot.unsqueeze(0),
-            scale.unsqueeze(0),
-            opacity.unsqueeze(0),
-            sh.unsqueeze(0),
+            pos,
+            rot,
+            scale,
+            opacity,
+            sh,
             c2w,
             intrinsics,
             width,
