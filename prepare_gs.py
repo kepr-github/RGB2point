@@ -131,7 +131,9 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
             height,
             render_mode="RGB"   
         )
+        print(rgb.shape)
         img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
+        print(img.shape)
         Image.fromarray(img).save(os.path.join(out_dir, f"{i:02}.png"))
 
 
