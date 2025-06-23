@@ -116,6 +116,9 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
             [np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)]
         )
         c2w = look_at(eye.astype(np.float32), center.astype(np.float32)).unsqueeze(0)
+        # N = sh.shape[0]
+        # K = (3 + 1)**2  # 16
+        # sh = sh.view(N, K, 3)
         rgb, _, _ = rasterization(
             pos,
             rot,
@@ -126,6 +129,7 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
             intrinsics,
             width,
             height,
+            render_mode="RGB"   
         )
         img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
         Image.fromarray(img).save(os.path.join(out_dir, f"{i:02}.png"))
