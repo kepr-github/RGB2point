@@ -184,19 +184,31 @@ class EMDLoss(nn.Module):
         return emd.mean()
 
 
-import open3d as o3d
 def export_to_ply(point_cloud, filename):
-    """
-    Export a point cloud to a PLY file.
-    :param point_cloud: Numpy array of shape (num_points, 3) representing the point cloud.
-    :param filename: String, the name of the file to save the point cloud to.
-    """
-    # Convert numpy array to Open3D point cloud
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(point_cloud)
+    """Save a point cloud to ``filename`` in ASCII PLY format.
 
-    # Write to a PLY file
-    o3d.io.write_point_cloud(filename, pcd)
+    Parameters
+    ----------
+    point_cloud : numpy.ndarray
+        Array of shape ``(num_points, 3)`` containing xyz coordinates.
+    filename : str
+        Output file path.
+    """
+
+    num_points = point_cloud.shape[0]
+    header = [
+        "ply",
+        "format ascii 1.0",
+        f"element vertex {num_points}",
+        "property float x",
+        "property float y",
+        "property float z",
+        "end_header\n",
+    ]
+
+    with open(filename, "w") as f:
+        f.write("\n".join(header))
+        np.savetxt(f, point_cloud, fmt="%f %f %f")
 
 
 from torchvision import transforms

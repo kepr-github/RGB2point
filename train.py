@@ -10,7 +10,6 @@ from glob import glob
 from accelerate import Accelerator
 
 from chamferdist import ChamferDistance
-import open3d as o3d
 from tqdm import tqdm
 
 from utils import PCDataset, chamfer_distance, EMDLoss, fscore
