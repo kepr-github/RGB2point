@@ -2,4 +2,5 @@
 /ckpt
 /wandb
 /result
+/gs
 __pycache__

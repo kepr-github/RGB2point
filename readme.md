@@ -59,7 +59,7 @@ category, or even a single `.ply` file, you can convert it into the
 ShapeNet-style format used in this repository. Run:
 
 ```
-python prepare_gs.py path/to/gs data
+python prepare_gs.py ./gs data
 ```
 
 This generates `ShapeNet_pointclouds` and `ShapeNetRendering` folders

@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     dataset = PCDataset(stage="train", transform=transform)
     dataloader = DataLoader(
-        dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=12
+        dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=8
     )
     test_dataset = PCDataset(stage="test", transform=transform)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
