@@ -53,6 +53,23 @@ python inference.py
 Change `image_path` and `save_path` in `inference.py` accrodingly.
 
 
+## Preparing gs data
+If you have a directory `gs/` that contains `.ply` files grouped by
+category, or even a single `.ply` file, you can convert it into the
+ShapeNet-style format used in this repository. Run:
+
+```
+python prepare_gs.py path/to/gs data
+```
+
+This generates `ShapeNet_pointclouds` and `ShapeNetRendering` folders
+inside `data/`. For each model, two point clouds (`pointcloud_1024.npy`
+and `pointcloud_2048.npy`) are created together with 24 randomly
+rendered views saved under a `rendering` directory. You can also pass a
+single `.ply` file instead of a directory; the parent folder name will
+be used as its category.
+
+
 ## update
 We have added support for the BlendedMVS Dataset with a custom DataLoader located in the notebooks folder. This integration enhances multi-view stereo capability for 3D reconstruction.
 
