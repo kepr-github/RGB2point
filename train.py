@@ -10,6 +10,8 @@ import numpy as np
 from glob import glob
 from accelerate import Accelerator
 import argparse
+import os
+from datetime import datetime, timezone, timedelta
 
 from chamferdist import ChamferDistance
 from tqdm import tqdm
@@ -210,7 +212,10 @@ if __name__ == "__main__":
         accelerator.log(
             {"test/loss": np.mean(loss_history), "cd": cdtable, "test/epoch": epoch + 1}
         )
-        model_save_name = "mymodel.pth"
+        os.makedirs("/ckpt", exist_ok=True)
+        jst = timezone(timedelta(hours=9))
+        timestamp = datetime.now(jst).strftime("%Y%m%d_%H%M%S")
+        model_save_name = f"/ckpt/mymodel_{timestamp}.pth"
         score = np.mean(-1 * total_cd)
         sche.step(score)
         if score < best:
