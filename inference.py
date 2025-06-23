@@ -11,7 +11,7 @@ model = PointCloudNet(num_views=1, point_cloud_size=1024, num_heads=4, dim_feedf
 model.load_state_dict(torch.load(model_save_name)["model"])
 model.eval()  
 
-image_path = "img/1013.jpg"
-save_path = "result/1013.ply"
+image_path = "img/01.png"
+save_path = "result/01.ply"
 
 predict(model, image_path, save_path)
