@@ -48,13 +48,10 @@ def main():
     rot = torch.from_numpy(data[:, 6 + 43 + 5 : 6 + 43 + 9]).float().to(device)
 
     cam_pose = torch.eye(4, device=device).unsqueeze(0)
-    intrinsics = (
-        torch.tensor(
-            [[800.0, 0.0, args.width / 2], [0.0, 800.0, args.height / 2], [0.0, 0.0, 1.0]],
-            device=device,
-        )
-        .unsqueeze(0)
-    )
+    intrinsics = torch.tensor(
+        [[800.0, 0.0, args.width / 2], [0.0, 800.0, args.height / 2], [0.0, 0.0, 1.0]],
+        device=device,
+    ).unsqueeze(0)
 
     rgb, _, _ = rasterization(
         pos.unsqueeze(0),
@@ -69,6 +66,11 @@ def main():
     )
 
     img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
+    img = np.squeeze(img)
+    if img.ndim == 3:
+        if img.shape[0] in {1, 3, 4}:
+            img = img.transpose(1, 2, 0)
+        img = img[..., :3]
     Image.fromarray(img).save(args.output)
 
 
