@@ -114,7 +114,7 @@ def render_views(data, out_dir, num_views=24, width=224, height=224):
         """Computes a camera-to-world transformation matrix."""
         forward = target - eye
         forward = forward / np.linalg.norm(forward)
-        up = np.array([0.0, 1.0, 0.0], dtype=np.float32) # Use Y-up convention, common in graphics
+        up = np.array([0.0, -1.0, 0.0], dtype=np.float32) # Use Y-up convention, common in graphics
         right = np.cross(forward, up)
         if np.linalg.norm(right) < 1e-6: # Handle case where forward is parallel to up
             up = np.array([0.0, 0.0, 1.0], dtype=np.float32)

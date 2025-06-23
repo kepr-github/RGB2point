@@ -5,3 +5,5 @@
 /gs
 __pycache__
 /img
+/soybean
+.*
