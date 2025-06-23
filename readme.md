@@ -15,6 +15,12 @@ pip install wandb
 pip install scikit-learn
 pip install gsplat
 ```
+If `gsplat` needs to be compiled from source, make sure the GLM headers
+are available. On Debian-based systems install `libglm-dev`:
+
+```
+apt-get update && apt-get install -y libglm-dev
+```
 
 ## Docker
 You can also run **RGB2Point** using Docker Compose. The provided compose file
