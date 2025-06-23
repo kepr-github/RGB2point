@@ -37,8 +37,19 @@ This container includes all Python dependencies required to train and infer
 models.
 
 ## Training
-```
+By default the training script expects the dataset to be located under
+`data/` with the two folders `ShapeNet_pointclouds` and
+`ShapeNetRendering` inside. Launch training with:
+
+```bash
 python train.py
+```
+
+If your data resides elsewhere or you want to train on a different set of
+categories, provide the dataset root and a list of category names:
+
+```bash
+python train.py --root /path/to/data --categories 02958343 02691156 03001627
 ```
 
 ## Training Data
