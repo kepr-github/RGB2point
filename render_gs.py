@@ -1,7 +1,7 @@
 """Render Gaussian Splat data from a PLY file using gsplat.
 
 This example shows how to load Scaniverse-style PLY files and render them
-with ``gsplat.GaussianRenderer``.
+with ``gsplat.rasterization``.
 
 Example:
     python render_gs.py your_scaniverse.ply output.png
@@ -10,7 +10,7 @@ Example:
 import argparse
 import numpy as np
 import torch
-from gsplat import GaussianRenderer
+from gsplat import rasterization
 from PIL import Image
 
 
@@ -40,25 +40,32 @@ def main():
     args = parser.parse_args()
 
     data = load_scaniverse_ply(args.ply_path)
-    pos = torch.from_numpy(data[:, :3]).float()
-    sh = torch.from_numpy(data[:, 6 : 6 + 3 + 43]).float()
-    opacity = torch.from_numpy(data[:, 6 + 43 + 1]).float()
-    scale = torch.from_numpy(data[:, 6 + 43 + 2 : 6 + 43 + 5]).float()
-    rot = torch.from_numpy(data[:, 6 + 43 + 5 : 6 + 43 + 9]).float()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    pos = torch.from_numpy(data[:, :3]).float().to(device)
+    sh = torch.from_numpy(data[:, 6 : 6 + 3 + 43]).float().to(device)
+    opacity = torch.from_numpy(data[:, 6 + 43 + 1]).float().to(device)
+    scale = torch.from_numpy(data[:, 6 + 43 + 2 : 6 + 43 + 5]).float().to(device)
+    rot = torch.from_numpy(data[:, 6 + 43 + 5 : 6 + 43 + 9]).float().to(device)
 
-    renderer = GaussianRenderer(
-        img_w=args.width, img_h=args.height, device="cuda"
-    )
-    renderer.set_gaussians(pos=pos, scale=scale, rot=rot, opacity=opacity, sh=sh)
-
-    cam_pose = torch.eye(4).unsqueeze(0).to("cuda")
+    cam_pose = torch.eye(4, device=device).unsqueeze(0)
     intrinsics = torch.tensor(
         [[800.0, 0.0, args.width / 2], [0.0, 800.0, args.height / 2], [0.0, 0.0, 1.0]],
-        device="cuda",
+        device=device,
     ).unsqueeze(0)
 
-    img = renderer.render(cam_pose, intrinsics)[0]
-    img = (img.clamp(0, 1) * 255).byte().cpu().numpy()
+    rgb, _, _ = rasterization(
+        pos.unsqueeze(0),
+        rot.unsqueeze(0),
+        scale.unsqueeze(0),
+        opacity.unsqueeze(0),
+        sh.unsqueeze(0),
+        cam_pose,
+        intrinsics,
+        args.width,
+        args.height,
+    )
+
+    img = (rgb[0].clamp(0, 1) * 255).byte().cpu().numpy()
     Image.fromarray(img).save(args.output)
 
 
