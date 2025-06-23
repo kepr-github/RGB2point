@@ -135,12 +135,12 @@ if __name__ == "__main__":
 
             if idx % 50 == 0:
                 accelerator.print(
-                    f"[Train|{epoch+1}] {idx}/{len(dataloader)} loss:{np.mean(iou_loss_history):.4f}  cd_loss:{np.mean(cd_history):.4f} "
+                    f"[Train|{epoch+1}] {idx}/{len(dataloader)} loss:{loss.item():.4f}  cd_loss:{cd_loss.item():.4f} "
                 )
                 accelerator.log(
                     {
-                        "train_batch/loss": np.mean(iou_loss_history),
-                        "train_batch/cd_loss": np.mean(cd_history),
+                        "train_batch/loss": loss.item(),
+                        "train_batch/cd_loss": cd_loss.item(),
                     }
                 )
         accelerator.print(
