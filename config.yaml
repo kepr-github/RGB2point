@@ -1,0 +1,34 @@
+# Example configuration for RGB2Point training and inference
+
+# Dataset settings
+dataset:
+  root: data
+  categories: ["02958343", "02691156", "03001627"]
+
+# Model hyperparameters
+model:
+  num_views: 1
+  point_cloud_size: 1024
+  num_heads: 4
+  dim_feedforward: 2048
+
+# Training options
+training:
+  batch_size: 4
+  num_epochs: 1000
+  learning_rate: 5e-4
+  scheduler:
+    factor: 0.7
+    patience: 5
+    min_lr: 1e-5
+    threshold: 0.01
+
+# Finetuning
+finetune:
+  ckpt: ckpt/pc1024_three.pth
+
+# Inference
+inference:
+  model_path: ckpt/mymodel.pth
+  image_path: img/09.png
+  save_path: result/09_1.ply

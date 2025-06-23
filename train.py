@@ -12,6 +12,7 @@ from accelerate import Accelerator
 import argparse
 import os
 from datetime import datetime, timezone, timedelta
+import yaml
 
 from chamferdist import ChamferDistance
 from tqdm import tqdm
@@ -23,14 +24,23 @@ from model import PointCloudNet
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train RGB2Point")
-    parser.add_argument("--root", default="data", help="Dataset root directory")
+    parser.add_argument("--config", default="config.yaml", help="Path to config file")
+    parser.add_argument("--root", default=None, help="Dataset root directory")
     parser.add_argument(
         "--categories",
         nargs="+",
-        default=["02958343", "02691156", "03001627"],
+        default=None,
         help="List of category names to use",
     )
     args = parser.parse_args()
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    root = args.root if args.root else cfg.get("dataset", {}).get("root", "data")
+    categories = args.categories if args.categories else cfg.get("dataset", {}).get(
+        "categories", ["02958343", "02691156", "03001627"]
+    )
 
     accelerator = Accelerator(log_with="wandb")
     # Avoid shared memory exhaustion when using DataLoader workers
@@ -43,27 +53,28 @@ if __name__ == "__main__":
         ]
     )
 
-    batch_size = 4
+    batch_size = cfg.get("training", {}).get("batch_size", 4)
     device = accelerator.device
 
     model = PointCloudNet(
-        num_views=1, point_cloud_size=1024, num_heads=4, dim_feedforward=2048
+        num_views=cfg.get("model", {}).get("num_views", 1),
+        point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
+        num_heads=cfg.get("model", {}).get("num_heads", 4),
+        dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
     )
-    optimizer = optim.Adam(model.parameters(), lr=5e-4)
+    optimizer = optim.Adam(model.parameters(), lr=cfg.get("training", {}).get("learning_rate", 5e-4))
+    sched_cfg = cfg.get("training", {}).get("scheduler", {})
     sche = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="min",
-        factor=0.7,
-        patience=5,
-        min_lr=1e-5,
+        factor=sched_cfg.get("factor", 0.7),
+        patience=sched_cfg.get("patience", 5),
+        min_lr=sched_cfg.get("min_lr", 1e-5),
         verbose=True,
-        threshold=0.01,
+        threshold=sched_cfg.get("threshold", 0.01),
     )
 
-    threshold = 0.001
-    alpha = 5.0
-
-    num_epochs = 1000
+    num_epochs = cfg.get("training", {}).get("num_epochs", 1000)
 
     accelerator.init_trackers(project_name="wacv_pc1024", config={})
 
@@ -87,11 +98,11 @@ if __name__ == "__main__":
     }
 
 
-    dataset = PCDataset(stage="train", transform=transform, root=args.root, categories=args.categories)
+    dataset = PCDataset(stage="train", transform=transform, root=root, categories=categories)
     dataloader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=8
     )
-    test_dataset = PCDataset(stage="test", transform=transform, root=args.root, categories=args.categories)
+    test_dataset = PCDataset(stage="test", transform=transform, root=root, categories=categories)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     model, optimizer, dataloader, test_dataloader, sche = accelerator.prepare(
         model, optimizer, dataloader, test_dataloader, sche

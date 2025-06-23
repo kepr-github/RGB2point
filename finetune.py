@@ -18,24 +18,35 @@ from tqdm import tqdm
 
 from utils import PCDataset, chamfer_distance, EMDLoss, fscore
 from model import PointCloudNet
+import yaml
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Finetune RGB2Point")
-    parser.add_argument("--root", default="data", help="Dataset root directory")
+    parser.add_argument("--config", default="config.yaml", help="Path to config file")
+    parser.add_argument("--root", default=None, help="Dataset root directory")
     parser.add_argument(
         "--categories",
         nargs="+",
-        default=["02958343", "02691156", "03001627"],
+        default=None,
         help="List of category names to use",
     )
     parser.add_argument(
         "--ckpt",
-        default="ckpt/pc1024_three.pth",
+        default=None,
         help="Path to pretrained checkpoint",
     )
     args = parser.parse_args()
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    root = args.root if args.root else cfg.get("dataset", {}).get("root", "data")
+    categories = args.categories if args.categories else cfg.get("dataset", {}).get(
+        "categories", ["02958343", "02691156", "03001627"]
+    )
+    ckpt_path = args.ckpt if args.ckpt else cfg.get("finetune", {}).get("ckpt", "ckpt/pc1024_three.pth")
 
     accelerator = Accelerator(log_with="wandb")
     # Avoid shared memory exhaustion when using DataLoader workers
@@ -48,32 +59,32 @@ if __name__ == "__main__":
         ]
     )
 
-    batch_size = 4
+    batch_size = cfg.get("training", {}).get("batch_size", 4)
     device = accelerator.device
 
     model = PointCloudNet(
-        num_views=1, point_cloud_size=1024, num_heads=4, dim_feedforward=2048
+        num_views=cfg.get("model", {}).get("num_views", 1),
+        point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
+        num_heads=cfg.get("model", {}).get("num_heads", 4),
+        dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048)
     )
-    if os.path.exists(args.ckpt):
-        state = torch.load(args.ckpt)
+    if os.path.exists(ckpt_path):
+        state = torch.load(ckpt_path)
         model.load_state_dict(state["model"])
     else:
-        raise FileNotFoundError(f"Checkpoint {args.ckpt} not found")
-    optimizer = optim.Adam(model.parameters(), lr=5e-4)
+        raise FileNotFoundError(f"Checkpoint {ckpt_path} not found")
+    optimizer = optim.Adam(model.parameters(), lr=cfg.get("training", {}).get("learning_rate", 5e-4))
     sche = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="min",
-        factor=0.7,
-        patience=5,
-        min_lr=1e-5,
+        factor=cfg.get("training", {}).get("scheduler", {}).get("factor", 0.7),
+        patience=cfg.get("training", {}).get("scheduler", {}).get("patience", 5),
+        min_lr=cfg.get("training", {}).get("scheduler", {}).get("min_lr", 1e-5),
         verbose=True,
-        threshold=0.01,
+        threshold=cfg.get("training", {}).get("scheduler", {}).get("threshold", 0.01),
     )
 
-    threshold = 0.001
-    alpha = 5.0
-
-    num_epochs = 1000
+    num_epochs = cfg.get("training", {}).get("num_epochs", 1000)
 
     accelerator.init_trackers(project_name="wacv_pc1024_finetune", config={})
 
@@ -97,11 +108,11 @@ if __name__ == "__main__":
     }
 
 
-    dataset = PCDataset(stage="train", transform=transform, root=args.root, categories=args.categories)
+    dataset = PCDataset(stage="train", transform=transform, root=root, categories=categories)
     dataloader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=8
     )
-    test_dataset = PCDataset(stage="test", transform=transform, root=args.root, categories=args.categories)
+    test_dataset = PCDataset(stage="test", transform=transform, root=root, categories=categories)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     model, optimizer, dataloader, test_dataloader, sche = accelerator.prepare(
         model, optimizer, dataloader, test_dataloader, sche
