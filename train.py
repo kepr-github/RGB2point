@@ -215,11 +215,13 @@ if __name__ == "__main__":
         os.makedirs("/ckpt", exist_ok=True)
         jst = timezone(timedelta(hours=9))
         timestamp = datetime.now(jst).strftime("%Y%m%d_%H%M%S")
-        model_save_name = f"/ckpt/mymodel_{timestamp}.pth"
-        score = np.mean(-1 * total_cd)
+        model_save_name = f"./ckpt/mymodel_{timestamp}.pth"
+        score = np.mean(total_cd)
         sche.step(score)
+        print(score)
         if score < best:
             best = score
+            print("model updated")
             if isinstance(model, nn.DataParallel):
                 data = {
                     "model": model.module.state_dict(),
