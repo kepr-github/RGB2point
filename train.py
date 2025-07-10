@@ -56,8 +56,9 @@ if __name__ == "__main__":
     batch_size = cfg.get("training", {}).get("batch_size", 4)
     device = accelerator.device
 
+    num_views = cfg.get("model", {}).get("num_views", 1)
     model = PointCloudNet(
-        num_views=cfg.get("model", {}).get("num_views", 1),
+        num_views=num_views,
         point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
         num_heads=cfg.get("model", {}).get("num_heads", 4),
         dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
@@ -104,11 +105,11 @@ if __name__ == "__main__":
     }
 
 
-    dataset = PCDataset(stage="train", transform=transform, root=root, categories=categories)
+    dataset = PCDataset(stage="train", transform=transform, root=root, categories=categories, num_views=num_views)
     dataloader = DataLoader(
         dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=8
     )
-    test_dataset = PCDataset(stage="test", transform=transform, root=root, categories=categories)
+    test_dataset = PCDataset(stage="test", transform=transform, root=root, categories=categories, num_views=num_views)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     model, optimizer, dataloader, test_dataloader, sche = accelerator.prepare(
         model, optimizer, dataloader, test_dataloader, sche

@@ -1,13 +1,15 @@
 from torch.utils.data import Dataset
 from glob import glob
 import os
+import random
 import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+from PIL import Image
 
 class PCDataset(Dataset):
-    def __init__(self, stage, transform=None, root="data", categories=None):
+    def __init__(self, stage, transform=None, root="data", categories=None, num_views=1):
         """Dataset loader for point clouds and renderings.
 
         Parameters
@@ -27,6 +29,7 @@ class PCDataset(Dataset):
         self.transform = transform
         self.stage = stage
         self.root = root
+        self.num_views = num_views
 
         default_categories = ["02958343", "02691156", "03001627"]
         self.categories = categories if categories is not None else default_categories
@@ -55,27 +58,19 @@ class PCDataset(Dataset):
 
         self.numbers_list = [f"{i:02}" for i in range(24)]
 
-        labels = []
-        category = set()
-        for f in self.filenames:
-            attr = f.split("/")
-            labels.append(attr[1].strip())
-            category.add(attr[0])
-
-        category = list(category)
-        self.labels = []
         self.data = []
 
-        for c in self.categories:
-            for label in labels:
-                volume_path = os.path.join(
-                    self.root,
-                    "ShapeNet_pointclouds",
-                    c,
-                    label,
-                    "pointcloud_1024.npy",
-                )
-                files = glob(
+        for fname in self.filenames:
+            c, label = fname.split("/")
+            volume_path = os.path.join(
+                self.root,
+                "ShapeNet_pointclouds",
+                c,
+                label,
+                "pointcloud_1024.npy",
+            )
+            files = sorted(
+                glob(
                     os.path.join(
                         self.root,
                         "ShapeNetRendering",
@@ -85,22 +80,10 @@ class PCDataset(Dataset):
                         "*.png",
                     )
                 )
-                for file in files:
-                    if self.stage == "train":
-                        if os.path.exists(volume_path):
-                            self.data.append([c, label, file])
+            )
 
-                if self.stage == "test":
-                    if os.path.exists(volume_path) and len(files) > 1:
-                        test_image_path = os.path.join(
-                            self.root,
-                            "ShapeNetRendering",
-                            c,
-                            label,
-                            "rendering",
-                            "00.png",
-                        )
-                        self.data.append([c, label, test_image_path])
+            if os.path.exists(volume_path) and len(files) >= self.num_views:
+                self.data.append([c, label, files])
 
     def __len__(self):
         return len(self.data)
@@ -122,9 +105,12 @@ class PCDataset(Dataset):
         data = self.data[idx]
         category = data[0]
         label = data[1]
-        image = data[2]
+        all_images = data[2]
 
-        image_files = [image]
+        if self.stage == "train":
+            image_files = random.sample(all_images, self.num_views)
+        else:
+            image_files = all_images[: self.num_views]
         pc = np.load(
             os.path.join(
                 self.root,
@@ -272,8 +258,9 @@ def export_to_ply(point_cloud, filename):
 
 
 from torchvision import transforms
-from PIL import Image
-def predict(model, image_path, save_path):
+
+
+def predict(model, image_paths, save_path):
 
     # Define the transformations
     transform = transforms.Compose(
@@ -283,12 +270,16 @@ def predict(model, image_path, save_path):
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         ]
     )
-    # Load the image
-    image = Image.open(image_path).convert("RGB")
+    if isinstance(image_paths, str):
+        image_paths = [image_paths]
 
-    # Apply the transformations
-    input_tensor = transform(image)
-    input_tensor = input_tensor.reshape(1,1,3,224,224)
+    images = []
+    for p in image_paths:
+        img = Image.open(p).convert("RGB")
+        img = transform(img)
+        images.append(img)
+
+    input_tensor = torch.stack(images, dim=0).unsqueeze(0)
 
     
 
@@ -298,4 +289,4 @@ def predict(model, image_path, save_path):
 
 
     export_to_ply(output[0], save_path)
-    print(f"Image from {image_path} saved to {save_path}")
+    print(f"Images {image_paths} saved to {save_path}")
