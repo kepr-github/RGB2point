@@ -5,9 +5,9 @@ RUN apt-get update && \
     apt-get install -y git libgl1 libglm-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# set working directory
+# set working directory and copy the project
 WORKDIR /app
-# source will be mounted at runtime via docker-compose
+COPY . .
 
 # install python dependencies
 RUN pip install --no-cache-dir timm accelerate wandb scikit-learn gsplat
