@@ -24,9 +24,11 @@ apt-get update && apt-get install -y libglm-dev
 ```
 
 ## Docker
-You can also run **RGB2Point** using Docker Compose. The provided compose file
-mounts the repository into the container so that changes on the host are
-immediately available.
+You can also run **RGB2Point** using Docker Compose. The compose file now
+includes the training code inside the image and only mounts your dataset from
+`./data` into the container. Place the dataset directory next to the
+`docker-compose.yml` file so that it is available under `/app/data` when the
+container starts.
 
 Build the image and start an interactive session:
 
