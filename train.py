@@ -62,14 +62,14 @@ if __name__ == "__main__":
         num_heads=cfg.get("model", {}).get("num_heads", 4),
         dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
     )
-    optimizer = optim.Adam(model.parameters(), lr=cfg.get("training", {}).get("learning_rate", 5e-4))
+    optimizer = optim.Adam(model.parameters(), lr=float(cfg.get("training", {}).get("learning_rate", 5e-4)))
     sched_cfg = cfg.get("training", {}).get("scheduler", {})
     sche = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer,
         mode="min",
         factor=sched_cfg.get("factor", 0.7),
         patience=sched_cfg.get("patience", 5),
-        min_lr=sched_cfg.get("min_lr", 1e-5),
+        min_lr=float(sched_cfg.get("min_lr", 1e-5)),
         verbose=True,
         threshold=sched_cfg.get("threshold", 0.01),
     )
@@ -100,7 +100,9 @@ if __name__ == "__main__":
         "04379243": "table",
         "04401088": "telephone",
         "04530566": "watercraft",
-        "soybean":"soybean"
+        "soybean":"soybean",
+        "plantonly":"soybean1",
+        "plantonly2":"soybean2",
     }
 
 
@@ -189,6 +191,7 @@ if __name__ == "__main__":
         """
         Testing
         """
+        print(test_dataloader)
         for idx, (images, gt_pc, names) in tqdm(enumerate(test_dataloader)):
             gt_pc = gt_pc.float().to(device)
             images = images.to(device)
@@ -230,7 +233,8 @@ if __name__ == "__main__":
             {"test/loss": np.mean(loss_history), "cd": cdtable, "test/epoch": epoch + 1}
         )
 
-        score = np.mean(total_cd)
+        # score = np.mean(total_cd)
+        score = np.mean(loss_history)
         model_save_name = os.path.join(
             save_dir, f"model_epoch{epoch + 1}_score{score:.4f}.pth"
         )

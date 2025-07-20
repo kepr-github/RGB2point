@@ -6,5 +6,5 @@
 __pycache__
 /img
 /soybean
-.*
 config.yaml
+sharp_frames_output

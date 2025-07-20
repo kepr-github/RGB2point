@@ -80,7 +80,7 @@ category, or even a single `.ply` file, you can convert it into the
 ShapeNet-style format used in this repository. Run:
 
 ```
-python prepare_gs.py ./gs data
+python prepare_gs.py ./soybean/plant_only_2 data
 ```
 
 This generates `ShapeNet_pointclouds` and `ShapeNetRendering` folders
@@ -112,8 +112,10 @@ Point clouds produced by `prepare_gs.py` are stored as NumPy arrays. To view
 them in CloudCompare or other point cloud viewers, convert the file to PLY:
 
 ```
-python convert_npy_to_ply.py data/ShapeNet_pointclouds/gs/エンレイ2/pointcloud_2048.npy output.ply
+python convert_npy_to_ply.py data/ShapeNet_pointclouds/plant_only/ピケット1/pointcloud_2048.npy ピケット1_GT.ply
 ```
+
+data/ShapeNet_pointclouds/plant_only/ピケット1/pointcloud_2048.npy
 
 Replace the paths with your own `.npy` file and desired output location.
 

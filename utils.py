@@ -73,7 +73,7 @@ class PCDataset(Dataset):
                     "ShapeNet_pointclouds",
                     c,
                     label,
-                    "pointcloud_1024.npy",
+                    "pointcloud_2048.npy",
                 )
                 files = glob(
                     os.path.join(
@@ -82,7 +82,7 @@ class PCDataset(Dataset):
                         c,
                         label,
                         "rendering",
-                        "*.png",
+                        "*.JPG",
                     )
                 )
                 for file in files:
@@ -90,17 +90,24 @@ class PCDataset(Dataset):
                         if os.path.exists(volume_path):
                             self.data.append([c, label, file])
 
+                # if self.stage == "test":
+                #     if os.path.exists(volume_path) and len(files) > 1:
+                #         test_image_path = os.path.join(
+                #             self.root,
+                #             "ShapeNetRendering",
+                #             c,
+                #             label,
+                #             "rendering",
+                #             "エンレイ3_1.JPG",
+                #         )
+                #         self.data.append([c, label, test_image_path])
                 if self.stage == "test":
-                    if os.path.exists(volume_path) and len(files) > 1:
-                        test_image_path = os.path.join(
-                            self.root,
-                            "ShapeNetRendering",
-                            c,
-                            label,
-                            "rendering",
-                            "00.png",
-                        )
+                    # 点群データとレンダリング画像が1枚以上存在するかチェック
+                    if os.path.exists(volume_path) and len(files) > 0:
+                        # filesリストの最初の画像パスをテスト用として使用
+                        test_image_path = files[0]
                         self.data.append([c, label, test_image_path])
+                        
 
     def __len__(self):
         return len(self.data)
@@ -131,7 +138,7 @@ class PCDataset(Dataset):
                 "ShapeNet_pointclouds",
                 category,
                 label,
-                "pointcloud_1024.npy",
+                "pointcloud_2048.npy",
             )
         )
         pc = self.normalize_point_cloud(pc)

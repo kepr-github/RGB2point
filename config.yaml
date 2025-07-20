@@ -3,19 +3,25 @@
 # Dataset settings
 dataset:
   root: data
-  categories: ["soybean"]
+  categories: ["plantonly", "plantonly2"]
 
 # Model hyperparameters
+# model:
+#   num_views: 1
+#   point_cloud_size: 2048
+#   num_heads: 4
+#   dim_feedforward: 2048
+
 model:
   num_views: 1
-  point_cloud_size: 1024
-  num_heads: 4
-  dim_feedforward: 2048
+  point_cloud_size: 2048
+  num_heads: 16
+  dim_feedforward: 8192
 
 # Training options
 training:
   batch_size: 4
-  num_epochs: 1000
+  num_epochs: 20000
   learning_rate: 5e-4
   scheduler:
     factor: 0.7
@@ -29,6 +35,6 @@ finetune:
 
 # Inference
 inference:
-  model_path: ckpt/20250623_232126/model_epoch25_score0.0838.pth
-  image_path: img/09.png
-  save_path: result/09_2.ply
+  model_path: ckpt/20250706_155728/model_epoch9830_score0.0107.pth
+  image_path: ./data/ShapeNetRendering/plantonly2/エンレイ4/rendering/エンレイ4_2.JPG
+  save_path: result/pi_2_2_0710.ply
