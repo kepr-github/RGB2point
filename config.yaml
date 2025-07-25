@@ -2,8 +2,8 @@
 
 # Dataset settings
 dataset:
-  root: data
-  categories: ["plantonly", "plantonly2"]
+  root: ./data
+  categories: ["plantonly", "plantonly2", "plant3"]
 
 # Model hyperparameters
 # model:

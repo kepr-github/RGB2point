@@ -8,3 +8,4 @@ __pycache__
 /soybean
 config.yaml
 sharp_frames_output
+ecs-gpu-cluster.yml

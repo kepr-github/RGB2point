@@ -103,6 +103,7 @@ if __name__ == "__main__":
         "soybean":"soybean",
         "plantonly":"soybean1",
         "plantonly2":"soybean2",
+        "plant3" : "plant3"
     }
 
 

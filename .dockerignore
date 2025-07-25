@@ -1,5 +1,11 @@
-__pycache__/
 *.pyc
-img/
-result/
-data/
+/data
+/ckpt
+/wandb
+/result
+/gs
+__pycache__
+/img
+/soybean
+sharp_frames_output
+ecs-gpu-cluster.yml
