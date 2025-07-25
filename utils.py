@@ -75,16 +75,22 @@ class PCDataset(Dataset):
                     label,
                     "pointcloud_2048.npy",
                 )
-                files = glob(
-                    os.path.join(
-                        self.root,
-                        "ShapeNetRendering",
-                        c,
-                        label,
-                        "rendering",
-                        "*.JPG",
+                extensions = ["jpg", "jpeg", "JPG", "JPEG", "png", "PNG"]
+                files = []
+                for ext in extensions:
+                    files.extend(
+                        glob(
+                            os.path.join(
+                                self.root,
+                                "ShapeNetRendering",
+                                c,
+                                label,
+                                "rendering",
+                                f"*.{ext}",
+                            )
+                        )
                     )
-                )
+                files.sort()
                 for file in files:
                     if self.stage == "train":
                         if os.path.exists(volume_path):
