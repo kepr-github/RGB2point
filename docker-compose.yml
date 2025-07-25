@@ -2,6 +2,7 @@ services:
   app:
     build: .
     volumes:
+      - .:/app
       - ./data:/app/data
     working_dir: /app
     deploy:
