@@ -68,13 +68,7 @@ class PCDataset(Dataset):
 
         for c in self.categories:
             for label in labels:
-                volume_path = os.path.join(
-                    self.root,
-                    "ShapeNet_pointclouds",
-                    c,
-                    label,
-                    "pointcloud_2048.npy",
-                )
+                volume_path = self._find_pointcloud_file(c, label)
                 extensions = ["jpg", "jpeg", "JPG", "JPEG", "png", "PNG"]
                 files = []
                 for ext in extensions:
@@ -93,7 +87,7 @@ class PCDataset(Dataset):
                 files.sort()
                 for file in files:
                     if self.stage == "train":
-                        if os.path.exists(volume_path):
+                        if volume_path and os.path.exists(volume_path):
                             self.data.append([c, label, file])
 
                 # if self.stage == "test":
@@ -109,10 +103,23 @@ class PCDataset(Dataset):
                 #         self.data.append([c, label, test_image_path])
                 if self.stage == "test":
                     # 点群データとレンダリング画像が1枚以上存在するかチェック
-                    if os.path.exists(volume_path) and len(files) > 0:
+                    if volume_path and os.path.exists(volume_path) and len(files) > 0:
                         # filesリストの最初の画像パスをテスト用として使用
                         test_image_path = files[0]
                         self.data.append([c, label, test_image_path])
+
+
+    def _find_pointcloud_file(self, category, label):
+        """Return the first npy file containing '2048' in its name for a model."""
+        pattern = os.path.join(
+            self.root,
+            "ShapeNet_pointclouds",
+            category,
+            label,
+            "*2048*.npy",
+        )
+        files = sorted(glob(pattern))
+        return files[0] if files else None
                         
 
     def __len__(self):
@@ -138,15 +145,8 @@ class PCDataset(Dataset):
         image = data[2]
 
         image_files = [image]
-        pc = np.load(
-            os.path.join(
-                self.root,
-                "ShapeNet_pointclouds",
-                category,
-                label,
-                "pointcloud_2048.npy",
-            )
-        )
+        volume_path = self._find_pointcloud_file(category, label)
+        pc = np.load(volume_path)
         pc = self.normalize_point_cloud(pc)
 
         images = []
