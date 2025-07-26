@@ -26,6 +26,7 @@ model = PointCloudNet(
     point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
     num_heads=cfg.get("model", {}).get("num_heads", 4),
     dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
+    train_vit=cfg.get("model", {}).get("train_vit", False),
 )
 model.load_state_dict(torch.load(model_path)["model"])
 model.eval()

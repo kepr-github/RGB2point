@@ -61,6 +61,7 @@ if __name__ == "__main__":
         point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
         num_heads=cfg.get("model", {}).get("num_heads", 4),
         dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
+        train_vit=cfg.get("model", {}).get("train_vit", False),
     )
     optimizer = optim.Adam(model.parameters(), lr=float(cfg.get("training", {}).get("learning_rate", 5e-4)))
     sched_cfg = cfg.get("training", {}).get("scheduler", {})

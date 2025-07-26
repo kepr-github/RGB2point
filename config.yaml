@@ -17,6 +17,7 @@ model:
   point_cloud_size: 2048
   num_heads: 16
   dim_feedforward: 8192
+  train_vit: false
 
 # Training options
 training:

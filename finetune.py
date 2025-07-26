@@ -66,7 +66,8 @@ if __name__ == "__main__":
         num_views=cfg.get("model", {}).get("num_views", 1),
         point_cloud_size=cfg.get("model", {}).get("point_cloud_size", 1024),
         num_heads=cfg.get("model", {}).get("num_heads", 4),
-        dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048)
+        dim_feedforward=cfg.get("model", {}).get("dim_feedforward", 2048),
+        train_vit=cfg.get("model", {}).get("train_vit", False)
     )
     if os.path.exists(ckpt_path):
         state = torch.load(ckpt_path)

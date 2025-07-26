@@ -46,14 +46,16 @@ class PointCloudGeneratorWithAttention(nn.Module):
 
 
 class PointCloudNet(nn.Module):
-    def __init__(self, num_views, point_cloud_size, num_heads, dim_feedforward):
+    def __init__(self, num_views, point_cloud_size, num_heads, dim_feedforward, train_vit=False):
         super(PointCloudNet, self).__init__()
+        self.train_vit = train_vit
         # Load the pretrained Vision Transformer model from timm
         self.vit = timm.create_model(
             "vit_base_patch16_224", pretrained=True, num_classes=0
         )
-        for param in self.vit.parameters():
-            param.requires_grad = False
+        if not self.train_vit:
+            for param in self.vit.parameters():
+                param.requires_grad = False
         # Define the number of features from the ViT model
         num_features = self.vit.num_features
 
@@ -75,8 +77,11 @@ class PointCloudNet(nn.Module):
         x = x.view(batch_size * num_views, C, H, W)
 
         # Extract features from the views using ViT
-        with torch.no_grad():
+        if self.train_vit:
             features = self.vit(x)
+        else:
+            with torch.no_grad():
+                features = self.vit(x)
 
         # Reshape features back to separate views
         features = features.view(batch_size, num_views, -1)
