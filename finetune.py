@@ -91,8 +91,11 @@ if __name__ == "__main__":
     # create timestamped directory for checkpoints
     jst = timezone(timedelta(hours=9))
     timestamp = datetime.now(jst).strftime("%Y%m%d_%H%M%S")
-    save_dir = os.path.join("ckpt", timestamp)
-    os.makedirs(save_dir, exist_ok=True)
+    save_root = os.path.join("ckpt", timestamp)
+    save_dir_best = os.path.join(save_root, "best")
+    save_dir_latest = os.path.join(save_root, "latest")
+    os.makedirs(save_dir_best, exist_ok=True)
+    os.makedirs(save_dir_latest, exist_ok=True)
 
     chamferDist = ChamferDistance()
     label_table = {
@@ -242,7 +245,7 @@ if __name__ == "__main__":
 
         score = np.mean(-1 * total_cd)
         model_save_name = os.path.join(
-            save_dir, f"model_epoch{epoch + 1}_score{score:.4f}.pth"
+            save_dir_best, f"model_epoch{epoch + 1}_score{score:.4f}.pth"
         )
         sche.step(score)
         if score < best:
@@ -257,3 +260,20 @@ if __name__ == "__main__":
                     "model": model.state_dict(),
                 }
                 torch.save(data, model_save_name)
+
+        if (epoch + 1) % 10 == 0:
+            latest_name = os.path.join(
+                save_dir_latest, f"model_epoch{epoch + 1}.pth"
+            )
+            for f in os.listdir(save_dir_latest):
+                os.remove(os.path.join(save_dir_latest, f))
+            if isinstance(model, nn.DataParallel):
+                data = {
+                    "model": model.module.state_dict(),
+                }
+                torch.save(data, latest_name)
+            else:
+                data = {
+                    "model": model.state_dict(),
+                }
+                torch.save(data, latest_name)
