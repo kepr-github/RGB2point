@@ -39,3 +39,6 @@ inference:
   model_path: ckpt/20250706_155728/model_epoch9830_score0.0107.pth
   image_path: ./data/ShapeNetRendering/plantonly2/エンレイ4/rendering/エンレイ4_2.JPG
   save_path: result/pi_2_2_0710.ply
+  # Optional folder-based inference settings
+  image_dir: null  # Set to a folder to process all images inside
+  output_dir: result

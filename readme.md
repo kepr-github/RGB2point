@@ -78,6 +78,14 @@ output path is provided, the result is written to the directory specified in
 `config.yaml` (or `result/`) using the input image file name with a `.ply`
 extension.
 
+To run inference on all images in a directory use the `--dir` option. By
+default results are written to the directory given by `--output_dir` or the
+`output_dir` value in `config.yaml`:
+
+```bash
+python inference.py --dir ./my_images --output_dir ./ply_results
+```
+
 
 ## Preparing gs data
 If you have a directory `gs/` that contains `.ply` files grouped by
