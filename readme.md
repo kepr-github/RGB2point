@@ -73,7 +73,10 @@ https://drive.google.com/file/d/1Z5luy_833YV6NGiKjGhfsfEUyaQkgua1/view?usp=shari
 python inference.py
 ```
 Settings for the model checkpoint and input/output paths are read from
-`config.yaml`. You can override them on the command line if needed.
+`config.yaml`. You can override them on the command line if needed. When no
+output path is provided, the result is written to the directory specified in
+`config.yaml` (or `result/`) using the input image file name with a `.ply`
+extension.
 
 
 ## Preparing gs data

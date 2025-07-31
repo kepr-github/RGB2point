@@ -1,9 +1,9 @@
-
 from model import PointCloudNet
 from utils import predict
 import torch
 import argparse
 import yaml
+import os
 
 
 
@@ -19,7 +19,18 @@ with open(args.config) as f:
 
 model_path = args.model if args.model else cfg.get("inference", {}).get("model_path", "ckpt/mymodel.pth")
 image_path = args.image if args.image else cfg.get("inference", {}).get("image_path", "img/09.png")
-save_path = args.output if args.output else cfg.get("inference", {}).get("save_path", "result/09_1.ply")
+
+if args.output:
+    save_path = args.output
+else:
+    default_save = cfg.get("inference", {}).get("save_path")
+    # Determine the directory where the ply file will be written
+    if default_save:
+        output_dir = os.path.dirname(default_save) or "."
+    else:
+        output_dir = "result"
+    base_name = os.path.splitext(os.path.basename(image_path))[0]
+    save_path = os.path.join(output_dir, base_name + ".ply")
 
 model = PointCloudNet(
     num_views=cfg.get("model", {}).get("num_views", 1),
